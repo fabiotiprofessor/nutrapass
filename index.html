@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Middleware Nutrapass (TriggleSys) - GoBiz Dashboard</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        industrial: {
+                            950: '#0B0F17',
+                            900: '#111827',
+                            800: '#1F2937',
+                            700: '#374151',
+                        },
+                        cardano: {
+                            blue: '#0033AD',
+                            cyan: '#00D2FF'
+                        },
+                        nutrapass: {
+                            amber: '#F59E0B',
+                            orange: '#EA580C'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom Scrollbar for Industrial Dark Theme */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0F17;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1F2937;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6)); }
+            50% { opacity: 0.6; filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.2)); }
+        }
+        .animate-pulse-glow {
+            animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(1000%); }
+        }
+        .scanline-effect {
+            animation: scanline 8s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-industrial-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-nutrapass-amber/30 selection:text-amber-300">
+
+    <!-- TOP HEADER -->
+    <header class="border-b border-slate-800 bg-industrial-900/90 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <!-- Branding & Logos -->
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-500/30 rounded-xl text-amber-500 shadow-inner">
+                        <i data-lucide="shield-check" class="w-7 h-7"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-xl tracking-wider bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200 bg-clip-text text-transparent">NUTRAPASS</span>
+                            <span class="text-xs  rounded border border-slate-700 bg-slate-800/80 text-slate-400 font-mono font-medium"><img src="https://www.trigglesys.net/assets/logo-CU3OYOec.png" alt="Logo" class="w-100 h-5"></span>
+                        </div>
+                        <p class="text-xs text-slate-400 tracking-wide">Middleware Industrial de Rastreabilidade & Criptografia</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client & Status Badges -->
+            <div class="flex items-center space-x-4 sm:space-x-6">
+                <!-- Pilot Client Badge -->
+                <div class="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-cyan-500/30 bg-cyan-950/30 text-cyan-400">
+                    <i data-lucide="factory" class="w-4 h-4"></i>
+                    <div class="text-xs">
+                        <span class="text-slate-400 block text-[10px] uppercase font-semibold">Cliente Piloto</span>
+                        <span class="font-bold tracking-wider">GoBiz Ltda.</span>
+                    </div>
+                </div>
+
+                <!-- Operational Status Indicator -->
+                <div class="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/20 text-emerald-400">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 animate-pulse-glow"></span>
+                    </span>
+                    <span class="text-xs font-semibold tracking-wide uppercase">Sistema Operacional</span>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- MAIN DASHBOARD CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- METRICS & CONTROLS BANNER -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-industrial-900 border border-slate-800 rounded-xl p-4 flex items-center space-x-4 shadow-sm">
+                <div class="p-3 bg-amber-500/10 text-amber-500 rounded-lg border border-amber-500/20">
+                    <i data-lucide="wine" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-medium uppercase">Garrafas Processadas</p>
+                    <p id="counter-bottles" class="text-2xl font-bold font-mono text-slate-100">0</p>
+                </div>
+            </div>
+
+            <div class="bg-industrial-900 border border-slate-800 rounded-xl p-4 flex items-center space-x-4 shadow-sm">
+                <div class="p-3 bg-cyan-500/10 text-cyan-400 rounded-lg border border-cyan-500/20">
+                    <i data-lucide="git-merge" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-medium uppercase">Nível da Árvore Merkle</p>
+                    <p id="counter-merkle-height" class="text-2xl font-bold font-mono text-slate-100">0</p>
+                </div>
+            </div>
+
+            <div class="bg-industrial-900 border border-slate-800 rounded-xl p-4 flex items-center space-x-4 shadow-sm">
+                <div class="p-3 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20">
+                    <i data-lucide="layers" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-medium uppercase">Modelo de Custo Cardano</p>
+                    <p class="text-xl font-bold text-slate-100">Taxa Única <span class="text-xs text-emerald-400 font-normal">(/Lote)</span></p>
+                </div>
+            </div>
+
+            <div class="bg-industrial-900 border border-slate-800 rounded-xl p-4 flex items-center space-x-4 shadow-sm">
+                <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20">
+                    <i data-lucide="cpu" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-medium uppercase">Velocidade da Esteira</p>
+                    <p class="text-2xl font-bold font-mono text-slate-100">1.2 <span class="text-xs text-slate-400 font-normal">ms/hash</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN GRID: LEFT (CONVEYOR BELT) & RIGHT (MERKLE + CARDANO) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <!-- LEFT COLUMN: CONVEYOR BELT SIMULATOR & TABLE (7 COLS) -->
+            <div class="lg:col-span-7 flex flex-col space-y-6">
+                
+                <div class="bg-industrial-900 border border-slate-800 rounded-xl p-6 shadow-xl relative overflow-hidden flex-1 flex flex-col">
+                    <!-- Overlay Industrial Tech Pattern -->
+                    <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <i data-lucide="binary" class="w-48 h-48 text-slate-100"></i>
+                    </div>
+
+                    <!-- Card Header & Trigger Button -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="activity" class="w-5 h-5 text-amber-500"></i>
+                                <h2 class="text-lg font-bold text-slate-100">Simulador da Esteira de Produção</h2>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-0.5">Captura óptica em tempo real de QR Codes e hashing SHA-256 imediato</p>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button id="btn-simulate" onclick="simulateConveyorReading()" class="group relative inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 font-bold text-xs uppercase tracking-wider hover:from-amber-400 hover:to-orange-500 active:scale-95 transition-all shadow-lg shadow-amber-500/20">
+                                <i data-lucide="play" class="w-4 h-4 fill-slate-950 group-hover:scale-110 transition-transform"></i>
+                                <span>Simular Leitura de Garrafas na Esteira</span>
+                            </button>
+                            
+                            <button onclick="clearConveyor()" class="p-2.5 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors" title="Limpar Registros">
+                                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Readings Table -->
+                    <div class="mt-6 flex-1 flex flex-col justify-between">
+                        <div class="overflow-x-auto rounded-lg border border-slate-800 bg-industrial-950/80">
+                            <table class="w-full text-left text-xs font-mono">
+                                <thead class="bg-slate-900/90 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                                    <tr>
+                                        <th class="py-3 px-3 w-12 text-center">#</th>
+                                        <th class="py-3 px-3">QR Code (Mascarado)</th>
+                                        <th class="py-3 px-3">Timestamp (ms)</th>
+                                        <th class="py-3 px-3">Hash SHA-256 (Folha)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body-bottles" class="divide-y divide-slate-800/60 text-slate-300">
+                                    <!-- Empty state row -->
+                                    <tr id="row-empty">
+                                        <td colspan="4" class="py-12 text-center text-slate-500 font-sans">
+                                            <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+                                            <p class="text-sm">Nenhuma garrafa lida na esteira até o momento.</p>
+                                            <p class="text-xs text-slate-600 mt-1">Clique no botão acima para iniciar a simulação de leitura óptica.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-4 flex items-center justify-between text-[11px] text-slate-500">
+                            <span>Exibindo lote de garrafas pendentes de ancoragem</span>
+                            <span id="label-table-count">0 garrafas registradas</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN: MERKLE TREE & CARDANO ANCHORING (5 COLS) -->
+            <div class="lg:col-span-5 flex flex-col space-y-6">
+
+                <!-- MERKLE TREE PANEL -->
+                <div class="bg-industrial-900 border border-slate-800 rounded-xl p-6 shadow-xl relative flex flex-col">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="network" class="w-5 h-5 text-cyan-400"></i>
+                            <h2 class="text-lg font-bold text-slate-100">Painel Merkle Tree</h2>
+                        </div>
+                        <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/50">Cálculo Criptográfico</span>
+                    </div>
+
+                    <!-- Visual Calculation Display -->
+                    <div class="mt-4 space-y-4">
+                        
+                        <!-- Root Hash Display Box -->
+                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+                            <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                                <span class="font-semibold uppercase tracking-wider text-[10px] text-cyan-400">Merkle Root Hash Atual</span>
+                                <span id="merkle-status-badge" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">AGUARDANDO</span>
+                            </div>
+                            <div id="merkle-root-display" class="font-mono text-xs font-bold text-slate-400 break-all bg-slate-900 p-2.5 rounded border border-slate-800/80">
+                                0x0000000000000000000000000000000000000000000000000000000000000000
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Tree Breakdown Visualizer -->
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-semibold uppercase text-slate-400 tracking-wider flex items-center justify-between">
+                                <span>Agrupamento de Pares de Hashes</span>
+                                <span id="merkle-leaves-count" class="text-xs text-slate-500 font-normal">0 folhas</span>
+                            </label>
+                            
+                            <div id="merkle-tree-nodes" class="bg-industrial-950 p-3 rounded-lg border border-slate-800 h-44 overflow-y-auto font-mono text-[11px] space-y-2">
+                                <div class="text-center text-slate-600 py-8 font-sans text-xs">
+                                    Aguardando hashes da esteira para agrupar em paridades SHA-256...
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- CARDANO ANCHORING PANEL -->
+                <div class="bg-industrial-900 border border-slate-800 rounded-xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-xs">
+                                    ₳
+                                </div>
+                                <h2 class="text-lg font-bold text-slate-100">Ancoragem Cardano (eUTXO)</h2>
+                            </div>
+                            <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800/50">Cardano Mainnet / Preprod</span>
+                        </div>
+
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            A gravação do Merkle Root no modelo eUTXO da Cardano imutabiliza todo o lote com cobrança de <strong>taxa única de transação</strong>, independente do volume de garrafas lidas.
+                        </p>
+
+                        <!-- Action Button -->
+                        <button id="btn-anchor" onclick="simulateCardanoAnchoring()" disabled class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs uppercase tracking-wider hover:from-blue-500 hover:to-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-900/30 flex items-center justify-center space-x-2">
+                            <i data-lucide="anchor" class="w-4 h-4"></i>
+                            <span id="btn-anchor-text">Simular Ancoragem no eUTXO Cardano</span>
+                        </button>
+
+                        <!-- Progress / Processing Animation Container -->
+                        <div id="processing-container" class="hidden space-y-2 pt-2">
+                            <div class="flex justify-between text-xs text-slate-300 font-mono">
+                                <span id="processing-step">Gerando Datum do eUTXO...</span>
+                                <span id="processing-percent">0%</span>
+                            </div>
+                            <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                                <div id="processing-bar" class="bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 h-2 rounded-full transition-all duration-300 w-0"></div>
+                            </div>
+                        </div>
+
+                        <!-- Transaction Success Receipt Card -->
+                        <div id="cardano-tx-card" class="hidden mt-4 p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 space-y-3">
+                            <div class="flex items-center space-x-2 text-emerald-400">
+                                <i data-lucide="check-circle-2" class="w-5 h-5 flex-shrink-0"></i>
+                                <span class="text-xs font-bold font-sans uppercase tracking-wide">Merkle Root gravado no eUTXO Cardano - Taxa Única Aplicada</span>
+                            </div>
+                            
+                            <div class="space-y-1.5 font-mono text-[11px] text-slate-300 pt-2 border-t border-emerald-500/20">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Cardano Tx Hash:</span>
+                                    <span id="tx-hash-val" class="text-cyan-400 font-bold truncate max-w-[180px]"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Metadata Label:</span>
+                                    <span class="text-slate-200">#674 (Nutrapass Proof)</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Taxa eUTXO Integrada:</span>
+                                    <span class="text-emerald-400 font-bold">0.168432 ADA</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Slot Cardano:</span>
+                                    <span id="tx-slot-val" class="text-slate-300"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800/80 bg-industrial-900/50 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+            <div>
+                © 2026 <strong class="text-slate-400">TriggleSys / Nutrapass Middleware</strong>. Todos os direitos reservados.
+            </div>
+            <div class="flex items-center space-x-4 font-mono text-[11px]">
+                <span>Cliente: <strong class="text-slate-300">GoBiz</strong></span>
+                <span>•</span>
+                <span>Cardano Node: <strong class="text-emerald-400">v8.9.2 (Sync)</strong></span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // State Management
+        let bottles = [];
+        let currentMerkleRoot = "";
+        let isAnchored = false;
+
+        // Initialize Icons
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+        });
+
+        // Crypto Helper: Real SHA-256 Hash using Browser Web Crypto API
+        async function sha256(str) {
+            const buffer = new TextEncoder().encode(str);
+            const digest = await crypto.subtle.digest('SHA-256', buffer);
+            return Array.from(new Uint8Array(digest))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        // Helper: Mask QR Code string for visual security requirement
+        function maskQRCode(qr) {
+            // Converts e.g. NTR-GBZ-2026-8492-9382 to NTR-GBZ-2026-****-9382
+            const parts = qr.split('-');
+            if (parts.length >= 4) {
+                return `${parts[0]}-${parts[1]}-${parts[2]}-****-${parts[parts.length - 1]}`;
+            }
+            return qr;
+        }
+
+        // Helper: Format Timestamp with precision milliseconds
+        function getTimestampWithMS() {
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            const ms = String(now.getMilliseconds()).padStart(3, '0');
+            return `${timeStr}.${ms}`;
+        }
+
+        // Action: Simulate Conveyor Reading Batch
+        async function simulateConveyorReading() {
+            // Reset anchored state if new readings are added
+            if (isAnchored) {
+                resetAnchoredState();
+            }
+
+            const btn = document.getElementById('btn-simulate');
+            btn.disabled = true;
+            btn.classList.add('opacity-75');
+
+            // Generate a batch of 4 random bottles sequentially to simulate actual conveyor movement
+            const batchSize = 4;
+            const prefixes = ['LOT-A1', 'LOT-A2', 'LOT-B8', 'LOT-C3'];
+
+            for (let i = 0; i < batchSize; i++) {
+                const randomNum = Math.floor(1000 + Math.random() * 9000);
+                const randomTail = Math.floor(1000 + Math.random() * 9000);
+                const rawQR = `NTR-GBZ-2026-${randomNum}-${randomTail}`;
+                const maskedQR = maskQRCode(rawQR);
+                const timestamp = getTimestampWithMS();
+                
+                // Real cryptographic hash of bottle payload
+                const payload = `${rawQR}|${timestamp}|GOBIZ-LINE-01`;
+                const hash = await sha256(payload);
+
+                bottles.push({
+                    id: bottles.length + 1,
+                    rawQR: rawQR,
+                    maskedQR: maskedQR,
+                    timestamp: timestamp,
+                    hash: hash
+                });
+
+                renderTable();
+                await updateMerkleTree();
+                
+                // Tiny delay to create conveyor belt stream effect
+                await new Promise(r => setTimeout(r, 180));
+            }
+
+            btn.disabled = false;
+            btn.classList.remove('opacity-75');
+            document.getElementById('btn-anchor').disabled = bottles.length === 0;
+            
+            // Re-initialize Lucide Icons for dynamic content
+            lucide.createIcons();
+        }
+
+        // Render Table Rows
+        function renderTable() {
+            const tbody = document.getElementById('table-body-bottles');
+            const emptyRow = document.getElementById('row-empty');
+
+            if (bottles.length > 0 && emptyRow) {
+                emptyRow.remove();
+            }
+
+            tbody.innerHTML = bottles.map((b, idx) => `
+                <tr class="hover:bg-slate-900/60 transition-colors animate-fadeIn">
+                    <td class="py-2.5 px-3 text-center text-slate-500 font-bold">${b.id}</td>
+                    <td class="py-2.5 px-3 font-semibold text-amber-400/90">${b.maskedQR}</td>
+                    <td class="py-2.5 px-3 text-slate-400">${b.timestamp}</td>
+                    <td class="py-2.5 px-3 text-cyan-400 font-mono text-[11px] truncate max-w-[180px]" title="${b.hash}">
+                        ${b.hash.substring(0, 16)}...${b.hash.substring(48)}
+                    </td>
+                </tr>
+            `).join('');
+
+            // Scroll table to bottom automatically
+            const container = tbody.parentElement.parentElement;
+            container.scrollTop = container.scrollHeight;
+
+            // Counters
+            document.getElementById('counter-bottles').innerText = bottles.length;
+            document.getElementById('label-table-count').innerText = `${bottles.length} garrafas registradas`;
+        }
+
+        // Compute and Visualise Merkle Tree
+        async function updateMerkleTree() {
+            if (bottles.length === 0) {
+                currentMerkleRoot = "";
+                document.getElementById('merkle-root-display').innerText = "0x0000000000000000000000000000000000000000000000000000000000000000";
+                document.getElementById('merkle-tree-nodes').innerHTML = `
+                    <div class="text-center text-slate-600 py-8 font-sans text-xs">
+                        Aguardando hashes da esteira para agrupar em paridades SHA-256...
+                    </div>`;
+                document.getElementById('counter-merkle-height').innerText = "0";
+                document.getElementById('merkle-status-badge').innerText = "AGUARDANDO";
+                document.getElementById('merkle-status-badge').className = "text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono";
+                return;
+            }
+
+            let leafHashes = bottles.map(b => b.hash);
+            let currentLevel = [...leafHashes];
+            let treeLevels = [currentLevel];
+
+            // Build Tree Levels
+            while (currentLevel.length > 1) {
+                let nextLevel = [];
+                for (let i = 0; i < currentLevel.length; i += 2) {
+                    let left = currentLevel[i];
+                    let right = (i + 1 < currentLevel.length) ? currentLevel[i + 1] : left; // Duplicate last node if odd
+                    let combinedHash = await sha256(left + right);
+                    nextLevel.push(combinedHash);
+                }
+                treeLevels.push(nextLevel);
+                currentLevel = nextLevel;
+            }
+
+            currentMerkleRoot = "0x" + currentLevel[0];
+            
+            // UI Updates for Merkle Root
+            document.getElementById('merkle-root-display').innerText = currentMerkleRoot;
+            document.getElementById('merkle-root-display').classList.remove('text-slate-400');
+            document.getElementById('merkle-root-display').classList.add('text-cyan-400');
+            
+            document.getElementById('counter-merkle-height').innerText = treeLevels.length;
+            document.getElementById('merkle-leaves-count').innerText = `${leafHashes.length} folhas`;
+            
+            document.getElementById('merkle-status-badge').innerText = "CALCULADO";
+            document.getElementById('merkle-status-badge').className = "text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/50 font-mono";
+
+            // Render Nodes Breakdown Visualizer
+            const visualizerContainer = document.getElementById('merkle-tree-nodes');
+            visualizerContainer.innerHTML = '';
+
+            // Show latest level calculations
+            treeLevels.forEach((level, levelIdx) => {
+                const levelDiv = document.createElement('div');
+                levelDiv.className = "border-b border-slate-800/60 pb-2 mb-2 last:border-0";
+
+                const title = levelIdx === treeLevels.length - 1 ? 
+                    '<span class="text-amber-400 font-bold">▶ Level Raiz (Merkle Root)</span>' : 
+                    (levelIdx === 0 ? '<span class="text-slate-400">▶ Level 0 (Hashes das Garrafas)</span>' : `<span class="text-slate-400">▶ Level ${levelIdx} (Hashes Intermediários)</span>`);
+
+                let hashesHtml = level.map(h => `
+                    <div class="bg-slate-900 px-2 py-1 rounded border border-slate-800 text-[10px] text-slate-300 font-mono truncate">
+                        ${h.substring(0, 10)}...${h.substring(54)}
+                    </div>
+                `).join('');
+
+                levelDiv.innerHTML = `
+                    <div class="text-[10px] mb-1 flex justify-between">${title} <span class="text-slate-500">${level.length} nó(s)</span></div>
+                    <div class="grid grid-cols-2 gap-1.5">${hashesHtml}</div>
+                `;
+                visualizerContainer.appendChild(levelDiv);
+            });
+
+            visualizerContainer.scrollTop = visualizerContainer.scrollHeight;
+        }
+
+        // Clear Conveyor Belt Simulation
+        function clearConveyor() {
+            bottles = [];
+            const tbody = document.getElementById('table-body-bottles');
+            tbody.innerHTML = `
+                <tr id="row-empty">
+                    <td colspan="4" class="py-12 text-center text-slate-500 font-sans">
+                        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+                        <p class="text-sm">Nenhuma garrafa lida na esteira até o momento.</p>
+                        <p class="text-xs text-slate-600 mt-1">Clique no botão acima para iniciar a simulação de leitura óptica.</p>
+                    </td>
+                </tr>
+            `;
+            document.getElementById('counter-bottles').innerText = '0';
+            document.getElementById('label-table-count').innerText = '0 garrafas registradas';
+            document.getElementById('btn-anchor').disabled = true;
+            resetAnchoredState();
+            updateMerkleTree();
+            lucide.createIcons();
+        }
+
+        // Action: Simulate Cardano Anchoring Event
+        async function simulateCardanoAnchoring() {
+            if (bottles.length === 0 || isAnchored) return;
+
+            const btn = document.getElementById('btn-anchor');
+            const btnText = document.getElementById('btn-anchor-text');
+            const processingBox = document.getElementById('processing-container');
+            const progressBar = document.getElementById('processing-bar');
+            const stepText = document.getElementById('processing-step');
+            const percentText = document.getElementById('processing-percent');
+            const txCard = document.getElementById('cardano-tx-card');
+
+            // Disable UI interactions during simulation
+            btn.disabled = true;
+            processingBox.classList.remove('hidden');
+            txCard.classList.add('hidden');
+
+            const steps = [
+                { percent: '20%', label: 'Empacotando Payload Metadata #674...' },
+                { percent: '50%', label: 'Gerando Datum eUTXO na Rede Cardano...' },
+                { percent: '80%', label: 'Assinando Transação Plutus...' },
+                { percent: '100%', label: 'Confirmando Bloco no Ledger Cardano...' }
+            ];
+
+            // 2-Second Processing Animation
+            for (let i = 0; i < steps.length; i++) {
+                stepText.innerText = steps[i].label;
+                percentText.innerText = steps[i].percent;
+                progressBar.style.width = steps[i].percent;
+                await new Promise(r => setTimeout(r, 500)); // 4 steps * 500ms = 2000ms (2 seconds)
+            }
+
+            // Generate Simulated Cardano Tx Info
+            const mockTxHash = "f8a92c" + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
+            const mockSlot = 118492039 + Math.floor(Math.random() * 500);
+
+            document.getElementById('tx-hash-val').innerText = mockTxHash;
+            document.getElementById('tx-slot-val').innerText = `#${mockSlot}`;
+
+            // Show Success Card
+            processingBox.classList.add('hidden');
+            txCard.classList.remove('hidden');
+            
+            isAnchored = true;
+            btnText.innerText = "Lote Ancorado no Cardano eUTXO";
+            btn.className = "w-full py-3.5 px-4 rounded-xl bg-slate-800 text-emerald-400 font-bold text-xs uppercase tracking-wider cursor-default border border-emerald-500/40 flex items-center justify-center space-x-2";
+
+            lucide.createIcons();
+        }
+
+        // Reset Anchored UI State
+        function resetAnchoredState() {
+            isAnchored = false;
+            const btn = document.getElementById('btn-anchor');
+            const btnText = document.getElementById('btn-anchor-text');
+            const txCard = document.getElementById('cardano-tx-card');
+            
+            txCard.classList.add('hidden');
+            btnText.innerText = "Simular Ancoragem no eUTXO Cardano";
+            btn.className = "w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs uppercase tracking-wider hover:from-blue-500 hover:to-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-900/30 flex items-center justify-center space-x-2";
+        }
+    </script>
+</body>
+</html>
